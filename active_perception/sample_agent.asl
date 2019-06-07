@@ -7,7 +7,7 @@
 
 /* Plans */
 +!fly: true
-	<-	active_perception.reveal(allowed_to_fly, verify_status);
+	<-	active_perception.reveal(allowed_to_fly, verify_status, 10000);
 		.print("Takeoff").
 
 // +!fly: active_perception.reveal(allowed_to_fly, verify_status)

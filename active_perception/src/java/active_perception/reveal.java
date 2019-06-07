@@ -1,108 +1,92 @@
 package active_perception;
 
-import jason.*;
-import jason.asSyntax.*;
 import jason.asSemantics.*;
+import jason.asSyntax.*;
+import java.util.logging.*;
 import static jason.asSyntax.ASSyntax.*;
 
-import java.util.logging.Level;
-import java.util.Iterator;
 
-public class reveal extends DefaultInternalAction {
-	private boolean goal_finished = false;
+public class reveal extends ConcurrentInternalAction {
 
-	@Override
-	public boolean suspendIntention(){
-		return true;
-	}
+    private Logger logger = Logger.getLogger("active_perception."+reveal.class.getName());
 
-	@Override
-	public Object execute( TransitionSystem ts,	Unifier un,	Term[] args ) throws Exception {
-		Term belief = args[0];
+    @Override
+    public Object execute(final TransitionSystem ts, Unifier un, final Term[] args) throws Exception {
+        try {
+            Term belief = args[0];
 
-		Literal plan;
-		try {
-		    plan = (Literal)args[1];
-		} catch ( IndexOutOfBoundsException e ) {
-		    plan = createLiteral("active_perception_plan");
-		}
+    		Literal plan;
+    		try {
+    		    plan = (Literal)args[1];
+    		} catch ( IndexOutOfBoundsException e ) {
+    		    plan = createLiteral("active_perception_plan");
+    		}
 
-		Event goal = ts.getC().addAchvGoal(plan, Intention.EmptyInt);
-
-		new WaitGoal(goal.getTrigger(), ts);
-		// while(!goal_finished){
-		// }
-		System.out.println("teste!!!!");
-
-		return true;
-	}
-
-	class WaitGoal implements CircumstanceListener {
-		private Trigger te;
-		private TransitionSystem ts;
-		private Circumstance c;
-		private Intention si;
-		private boolean dropped = false;
-		private String sEvt;
-
-		WaitGoal(Trigger te, TransitionSystem ts){
-			this.te = te;
-			this.ts = ts;
-			c = ts.getC();
-			si = c.getSelectedIntention();
-
-			c.addEventListener(this);
-			sEvt = String.valueOf(si.getId());
-            c.addPendingIntention(sEvt, si);
-
-		}
-
-		void resume(final boolean stopByTimeout) {
-			c.removeEventListener(this);
-
-			ts.runAtBeginOfNextCycle(new Runnable() {
-				public void run() {
-                    try {
-						if (c.removePendingIntention(sEvt) == si && (si.isAtomic() || !c.hasRunningIntention(si)) && !dropped) {
-							if (! si.isFinished()) {
-								si.peek().removeCurrentStep();
-
-								if (si.isSuspended()) { // if the intention was suspended by .suspend
-								   c.addPendingIntention(jason.stdlib.suspend.SUSPENDED_INT+si.getId(), si);
-								} else {
-								   c.resumeIntention(si);
-								}
-							}
-						}
-					}catch (Exception e) {
-                        ts.getLogger().log(Level.SEVERE, "Error at active_perception.reveal thread", e);
-                    }
+			NumberTerm time;
+			try {
+				if(args[2].isNumeric()){
+					time = (NumberTerm)args[2];
+				}else{
+					time = createNumber(5000);
 				}
-			});
-			ts.getUserAgArch().wakeUpDeliberate();
-		}
+			}catch ( IndexOutOfBoundsException e ) {
+    		    time = createNumber(5000);
+    		}
 
-		public void eventAdded(Event e) {
-            if (dropped)
-                return;
+            Event goal = ts.getC().addAchvGoal(plan, Intention.EmptyInt);
+            final String key = suspendInt(ts, "reveal", (int)time.solve()); //TIME?
+
+            startInternalAction(ts, new Runnable() {
+                public void run() {
+                    new WaitGoal(goal.getTrigger(), ts, key);
+                }
+            });
+
+			
+
+            return true;
+        } catch (Exception e) {
+            logger.warning("Error in internal action 'active_perception.reveal'! "+e);
         }
+        return false;
+    }
 
-		public void intentionDropped(Intention i) {
-            if (i.equals(si)) {
-                dropped = true;
-                resume(false);
-            }
-        }
+    /** called back when some intention should be resumed/failed by timeout */
+    @Override
+    public void timeout(TransitionSystem ts, String intentionKey) {
+		System.out.println("Time out in reveal!");
+        failInt(ts, intentionKey);
+    }
+}
 
-		public void intentionAdded(Intention i) {
-			IntendedMeans im = i.peek();
-			if(im.isFinished()==true && te.equals(im.getTrigger())){
-				goal_finished = true;
-				System.out.println("ajsdjdsajd");
-				resume(true);
-			}
-		}
-        public void intentionResumed(Intention i) { }
-        public void intentionSuspended(Intention i, String reason) { }
+class WaitGoal implements CircumstanceListener{
+	private Trigger te;
+    private TransitionSystem ts;
+    private Circumstance c;
+    private Intention si;
+    final String key;
+    reveal r = new reveal();
+
+	WaitGoal(Trigger te, TransitionSystem ts, String key){
+		this.te = te;
+		this.ts = ts;
+        this.key = key;
+		c = ts.getC();
+		si = c.getSelectedIntention();
+		c.addEventListener(this);
 	}
+
+	public void eventAdded(Event e) {}
+
+	public void intentionDropped(Intention i) {}
+
+	public void intentionAdded(Intention i) {
+		IntendedMeans im = i.peek();
+		if(im.isFinished()==true && te.equals(im.getTrigger())){
+            r.resume(ts, key, false, null);
+		}
+	}
+	public void intentionResumed(Intention i) {}
+	public void intentionSuspended(Intention i, String reason) {}
+
 }
