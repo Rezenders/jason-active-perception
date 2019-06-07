@@ -2,18 +2,26 @@ package active_perception;
 
 import jason.asSemantics.*;
 import jason.asSyntax.*;
-import java.util.logging.*;
 import static jason.asSyntax.ASSyntax.*;
+
+import java.util.logging.*;
+import java.util.Iterator;
 
 
 public class reveal extends ConcurrentInternalAction {
 
     private Logger logger = Logger.getLogger("active_perception."+reveal.class.getName());
+	@Override
+	public boolean canBeUsedInContext() {
+        return true;
+    }
 
     @Override
     public Object execute(final TransitionSystem ts, Unifier un, final Term[] args) throws Exception {
         try {
-            Term belief = args[0];
+            Atom belief_aux = (Atom)args[0];
+			Literal belief = createLiteral(belief_aux.getFunctor());
+			belief.addAnnot(ts.getAg().getBB().TSelf); //Change to active_perception?
 
     		Literal plan;
     		try {
@@ -38,11 +46,9 @@ public class reveal extends ConcurrentInternalAction {
 
             startInternalAction(ts, new Runnable() {
                 public void run() {
-                    new WaitGoal(goal.getTrigger(), ts, key);
+                    new WaitGoal(goal.getTrigger(), ts, key, belief);
                 }
             });
-
-			
 
             return true;
         } catch (Exception e) {
@@ -65,12 +71,14 @@ class WaitGoal implements CircumstanceListener{
     private Circumstance c;
     private Intention si;
     final String key;
+	Literal belief;
     reveal r = new reveal();
 
-	WaitGoal(Trigger te, TransitionSystem ts, String key){
+	WaitGoal(Trigger te, TransitionSystem ts, String key, Literal belief){
 		this.te = te;
 		this.ts = ts;
         this.key = key;
+		this.belief = belief;
 		c = ts.getC();
 		si = c.getSelectedIntention();
 		c.addEventListener(this);
@@ -83,7 +91,18 @@ class WaitGoal implements CircumstanceListener{
 	public void intentionAdded(Intention i) {
 		IntendedMeans im = i.peek();
 		if(im.isFinished()==true && te.equals(im.getTrigger())){
-            r.resume(ts, key, false, null);
+			boolean isEqual = false;
+			Iterator<Literal> ibb = ts.getAg().getBB().getCandidateBeliefs(new PredicateIndicator("allowed_to_fly",0));
+			while (ibb != null && ibb.hasNext()) {
+				Literal l = ibb.next();
+                if(l.equals(belief)){
+					r.resumeInt(ts, key);
+					isEqual = true;
+				}
+			}
+			if(!isEqual){
+				r.failInt(ts,key);
+			}
 		}
 	}
 	public void intentionResumed(Intention i) {}
