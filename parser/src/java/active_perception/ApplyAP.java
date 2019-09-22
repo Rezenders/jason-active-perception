@@ -47,13 +47,21 @@ public class ApplyAP extends DefaultDirective implements Directive {
 			String new_label_str = "l__" + String.valueOf(outerContent.getPL().size() + 1);
 			Pred new_label = new Pred(createLiteral(new_label_str));
 
-			InternalActionLiteral update_ia = new InternalActionLiteral("active_perception.update");
-			Literal update_lit = createLiteral("b").addAnnots(createLiteral("ap",createAtom("1000")));
-			update_ia.addTerm(update_lit);
 			Plan new_plan = new Plan​(new_label, t, null, new PlanBodyImpl());
 
-			PlanBodyImpl bl = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.internalAction, update_ia);
+			for(Literal b : ap_beliefs_set){
+				InternalActionLiteral update_ia = new InternalActionLiteral("active_perception.update");
+				update_ia.addTerm(b);
+
+				PlanBodyImpl bl = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.internalAction, update_ia);
+				new_plan.getBody().add(bl);
+			}
+
+			Literal literal_aux = (Literal)t.getLiteral().clone();
+			Atom ap = createAtom("ap");
+			PlanBodyImpl bl = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.achieve, literal_aux.addAnnots(ap));
 			new_plan.getBody().add(bl);
+
 			try{
 				outerContent.getPL().add(new_plan);
 			}catch(JasonException je){
@@ -61,23 +69,6 @@ public class ApplyAP extends DefaultDirective implements Directive {
 			}
 		}
 		return null;
-	}
-
-	//TODO:Retornar os beliefs que precisam ser atualizados ao invés de true/false
-	boolean isAP(Literal context){
-		Integer arity = context.getArity();
-		if(arity==0 && !context.getAnnots("ap").isEmpty()){
-			// System.out.println(context);
-			return true;
-		}else if(arity > 0){
-			if(isAP((Literal)context.getTermsArray()[0])){
-				return true;
-			}
-			if(isAP((Literal)context.getTermsArray()[1])){
-				return true;
-			}
-		}
-		return false;
 	}
 
 	List<Literal> getApBeliefs(Literal context){
