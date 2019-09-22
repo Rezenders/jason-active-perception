@@ -6,19 +6,7 @@ e.
 !z.
 +e <- !g.
 
-/* Plans */
-// +!g <- !update_ap_g; !g_ap.
-//
-// +!update(U) <- active_perception.update(U).
-//
-// +!update_ap_g
-// 	<- 	!update(b[ap(1000)]) |&|
-// 		!update(c[ap(2000)]) |&|
-// 		!update(d[ap(3000)]).
-
 +!z <- .print("teste").
-
-// +!g[ap(8888)] <- .print("oi").
 
 +!g: b[ap(1000)] & c[ap(2000)] & d[ap(3000)]
 	<- .print("GOAL G1").
