@@ -18,7 +18,7 @@ e.
 
 +!z <- .print("teste").
 
-+!g[ap(8888)] <- .print("oi").
+// +!g[ap(8888)] <- .print("oi").
 
 +!g: b[ap(1000)] & c[ap(2000)] & d[ap(3000)]
 	<- .print("GOAL G1").
