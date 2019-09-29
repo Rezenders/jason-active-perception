@@ -3,10 +3,7 @@
 /* Initial beliefs and rules */
 e.
 /* Initial goals */
-!z.
-+e <- !g.
-
-+!z <- .print("teste").
++e <- !g; !g2.
 
 +!g: b[ap(1000)] & c[ap(2000)] & d[ap(3000)]
 	<- .print("GOAL G1").
@@ -21,6 +18,10 @@ e.
 
 +!g <- .print("GOAL G5!").
 
++!g2: b[ap(1000)] & c[ap(2000)]
+	<- .print("Plan 2!!!!!!!!!").
+
+-!g2.
 +?b[ap(T)]
 	<-	.time(HH,MM,SS);
 		+b[ap(T),lu(HH,MM,SS)];

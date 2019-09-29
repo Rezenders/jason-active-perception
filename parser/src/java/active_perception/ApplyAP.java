@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import jason.asSyntax.Trigger.TEType;
 import jason.asSyntax.Trigger.TEOperator;
 import jason.JasonException;
@@ -16,7 +18,7 @@ import jason.architecture.AgArch;
 
 public class ApplyAP extends DefaultDirective implements Directive {
 
-	Set<Literal> ap_beliefs_set = new HashSet<Literal>();
+	Map<Trigger, Set<Literal>> ap_beliefs_map = new HashMap<Trigger, Set<Literal>>();
 
 	public Agent process(Pred directive, Agent outerContent, Agent innerContent){
 		if (outerContent == null)
@@ -30,11 +32,13 @@ public class ApplyAP extends DefaultDirective implements Directive {
 			if(context != null){
 				List<Literal>  ap_beliefs = getApBeliefs(context);
 				if(!ap_beliefs.isEmpty()){
-					triggers_ap.add(p.getTrigger().clone());
-					ap_beliefs_set.addAll(ap_beliefs);
+					Trigger trigger = p.getTrigger().clone();
+					triggers_ap.add(trigger);
+					ap_beliefs_map.computeIfAbsent(trigger, k -> new HashSet<Literal>()).addAll(ap_beliefs);
 				}
 			}
 		}
+
 		//Annotating plans with ap
 		for(Plan p: outerContent.getPL()){
 			if(triggers_ap.contains(p.getTrigger())){
@@ -43,13 +47,14 @@ public class ApplyAP extends DefaultDirective implements Directive {
 			}
 		}
 
+		//Adding new plans +!g -> .update(...); !g[ap].
 		for(Trigger t : triggers_ap){
 			String new_label_str = "l__" + String.valueOf(outerContent.getPL().size() + 1);
 			Pred new_label = new Pred(createLiteral(new_label_str));
 
 			Plan new_plan = new Plan​(new_label, t, null, new PlanBodyImpl());
 
-			for(Literal b : ap_beliefs_set){
+			for(Literal b : ap_beliefs_map.getOrDefault(t, new HashSet<Literal>())){
 				InternalActionLiteral update_ia = new InternalActionLiteral("active_perception.update");
 				update_ia.addTerm(b);
 
