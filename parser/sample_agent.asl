@@ -21,7 +21,10 @@ e.
 +!g2: b[ap(1000)] & c[ap(2000)]
 	<- .print("Plan 2!!!!!!!!!").
 
--!g2.
++!g2 <- .print("hellooooooooo").
+
+-!g2 <- .print("FAILED!!!!").
+
 +?b[ap(T)]
 	<-	.time(HH,MM,SS,MS);
 		+b[ap(T),lu(HH,MM,SS,MS)];
@@ -34,4 +37,4 @@ e.
 
 +?d[ap(T)] <- .print("Active perception plan for d").
 
-{apply_ap("oi!!")}
+{apply_ap}
