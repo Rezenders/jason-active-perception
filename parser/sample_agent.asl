@@ -23,13 +23,13 @@ e.
 
 -!g2.
 +?b[ap(T)]
-	<-	.time(HH,MM,SS);
-		+b[ap(T),lu(HH,MM,SS)];
+	<-	.time(HH,MM,SS,MS);
+		+b[ap(T),lu(HH,MM,SS,MS)];
 		.print("Active perception plan for b").
 
 +?c[ap(T)]
-	<-	.time(HH,MM,SS);
-		+c[ap(T),lu(HH,MM,SS)];
+	<-	.time(HH,MM,SS,MS);
+		+c[ap(T),lu(HH,MM,SS,MS)];
 		.print("Active perception plan for c").
 
 +?d[ap(T)] <- .print("Active perception plan for d").
