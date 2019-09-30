@@ -6,7 +6,7 @@ import jason.asSyntax.directives.*;
 import jason.asSyntax.BodyLiteral.BodyType;
 import static jason.asSyntax.ASSyntax.*;
 import java.util.Set;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -18,13 +18,13 @@ import jason.architecture.AgArch;
 
 public class ApplyAP extends DefaultDirective implements Directive {
 
-	Map<Trigger, Set<Literal>> ap_beliefs_map = new HashMap<Trigger, Set<Literal>>();
+	Map<Trigger, LinkedHashSet<Literal>> ap_beliefs_map = new HashMap<Trigger, LinkedHashSet<Literal>>();
 
 	public Agent process(Pred directive, Agent outerContent, Agent innerContent){
 		if (outerContent == null)
             return null;
 
-		Set<Trigger> triggers_ap = new HashSet<Trigger>();
+		Set<Trigger> triggers_ap = new LinkedHashSet<Trigger>();
 
 		//Get plans that has any belief marked with ap in context
 		for(Plan p : outerContent.getPL()){
@@ -34,7 +34,7 @@ public class ApplyAP extends DefaultDirective implements Directive {
 				if(!ap_beliefs.isEmpty()){
 					Trigger trigger = p.getTrigger().clone();
 					triggers_ap.add(trigger);
-					ap_beliefs_map.computeIfAbsent(trigger, k -> new HashSet<Literal>()).addAll(ap_beliefs);
+					ap_beliefs_map.computeIfAbsent(trigger, k -> new LinkedHashSet<Literal>()).addAll(ap_beliefs);
 				}
 			}
 		}
@@ -54,7 +54,7 @@ public class ApplyAP extends DefaultDirective implements Directive {
 
 			Plan new_plan = new Plan​(new_label, t, null, new PlanBodyImpl());
 
-			for(Literal b : ap_beliefs_map.getOrDefault(t, new HashSet<Literal>())){
+			for(Literal b : ap_beliefs_map.getOrDefault(t, new LinkedHashSet<Literal>())){
 				InternalActionLiteral update_ia = new InternalActionLiteral("active_perception.update");
 				update_ia.addTerm(b);
 
