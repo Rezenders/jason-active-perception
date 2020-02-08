@@ -17,6 +17,8 @@ import jason.asSyntax.Trigger.TEOperator;
 import jason.JasonException;
 import jason.architecture.AgArch;
 
+import active_perception.ActivePerception;
+
 public class ApplyAP3 extends DefaultDirective implements Directive {
 	Map<Trigger, LinkedHashSet<Literal>> ap_beliefs_map = new HashMap<Trigger, LinkedHashSet<Literal>>();
 
@@ -31,7 +33,7 @@ public class ApplyAP3 extends DefaultDirective implements Directive {
 			Literal context = (Literal)p.getContext();
 			if(context != null){
 				//Get beliefs annotated with ap
-				List<Literal>  ap_beliefs = getApBeliefs(context);
+				List<Literal>  ap_beliefs = ActivePerception.getApBeliefs(context);
 
 				//If it has any beliefs that are annotated
 				if(!ap_beliefs.isEmpty()){
@@ -56,18 +58,4 @@ public class ApplyAP3 extends DefaultDirective implements Directive {
 		}
 		return null;
 	}
-
-	List<Literal> getApBeliefs(Literal context){
-		List<Literal> beliefs = new ArrayList<Literal>();
-		Integer arity = context.getArity();
-
-		if(arity==0 && !context.getAnnots("ap").isEmpty()){
-			beliefs.add(context);
-		}else if(arity > 0){
-			beliefs.addAll(getApBeliefs((Literal)context.getTermsArray()[0]));
-			beliefs.addAll(getApBeliefs((Literal)context.getTermsArray()[1]));
-		}
-		return beliefs;
-	}
-
 }
