@@ -69,6 +69,14 @@ public class ApplyAP extends DefaultDirective implements Directive {
 			}
 		}
 
+		//Annotating inital goals with ap
+		for(Literal l: outerContent.getInitialGoals()){
+			for(Trigger t: triggers_ap){
+				if(t.getLiteral().equals(l)){
+					Atom rp = createAtom("ap");
+					l.addAnnot(rp);
+				}
+			}
 		}
 
 		//Adding new plans +!g[ap] -> .update(...); !g[rp].
