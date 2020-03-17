@@ -1,0 +1,14 @@
+MAS active_perception {
+
+    infrastructure: Centralised
+
+    /* agents: approach1; */
+    /* agents: approach2; */
+    /* agents: approach3; */
+    /* agents: sample_agent; */
+    agents: onlyasl;
+    directives: apply_ap = active_perception.ApplyAP;
+    /* directives: apply_ap = active_perception.ApplyAP3; */
+
+    aslSourcePath: "src/asl";
+}
