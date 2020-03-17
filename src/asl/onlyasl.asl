@@ -22,3 +22,5 @@ e.
 		.print("Active perception plan for c").
 
 +?d[ap(T)] <- .print("Active perception plan for d").
+
+{apply_ap}
