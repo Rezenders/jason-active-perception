@@ -14,6 +14,13 @@ MAS parser {
 
     infrastructure: Centralised
 
-    agents: sample_agent;
-    directives: apply_ap = active_perception.ApplyAP;
+    /* agents: applyap1; */
+    agents: applyap2;
+    /* agents: applyap3; */
+    /* agents: sample_agent; */
+    /* agents: onlyasl; */
+    /* directives: apply_ap = active_perception.ApplyAP; */
+    /* directives: apply_ap = active_perception.ApplyAP3; */
+
+    aslSourcePath: "src/asl";
 }
