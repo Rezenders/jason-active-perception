@@ -37,11 +37,9 @@ public class update extends ConcurrentInternalAction {
 							lu_calendar.set(Calendar.MILLISECOND,(int)((NumberTerm)lu_literal.getTerm(3)).solve());
 							lu_calendar.getTime();
 
-							// Thread.sleep(800);
 							int time_limit = (int)((NumberTerm) belief.getAnnot("ap").getTerm(0)).solve();
 							Calendar now = new GregorianCalendar();
 							long time_elapsed = now.getTimeInMillis() - lu_calendar.getTimeInMillis();
-							// System.out.println("Time elapsed: " + time_elapsed);
 							if(time_elapsed > time_limit){
 								updateBelief(ts, ap_belief);
 							}else{
