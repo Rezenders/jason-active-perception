@@ -53,6 +53,22 @@ public class ApplyAP extends DefaultDirective implements Directive {
 				Atom rp = createAtom("rp");
 				p.getTrigger().getLiteral().addAnnots(rp);
 			}
+
+			//add [ap] to !g inside plans body
+			PlanBody pb = p.getBody();
+			for(int i=0; i<p.getBody().getPlanSize(); i++){
+				for(Trigger t: triggers_ap){
+					if(t.getLiteral().equals(pb.getBodyTerm()) && pb.getBodyType() == jason.asSyntax.PlanBody.BodyType.achieve ){
+						Atom ap = createAtom("ap");
+						Literal pb_ap = (Literal)pb.getBodyTerm();
+						pb_ap.addAnnot(ap);
+						break;
+					}
+				}
+				pb = pb.getBodyNext();
+			}
+		}
+
 		}
 
 		//Adding new plans +!g[ap] -> .update(...); !g[rp].
