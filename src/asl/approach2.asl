@@ -1,12 +1,13 @@
 // 2 & Beliefs & Grouped & All & Time & Natural
+
 e.
 +e <- !g[ap].
 
 +!g[ap]
 	<- 	active_perception.update(b[ap(1000)]);
-		active_perception.update(c[ap(2000)]);
-		active_perception.update(d[ap(3000)]);
-		!g[rp].
+			active_perception.update(c[ap(2000)]);
+			active_perception.update(d[ap(3000)]);
+			!g[rp].
 
 +!g[rp]: b[ap(1000)] & c[ap(2000)] & d[ap(3000)]
 	<-	.print("GOAL G1").
@@ -17,7 +18,6 @@ e.
 +!g[rp] <- .print("GOAL G3").
 
 -!g[rp] <- .print("Falhou").
-
 
 +?b[ap(T)]
 	<-	.time(HH,MM,SS,MS);
