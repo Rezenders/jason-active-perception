@@ -1,5 +1,8 @@
+
 e.
-+e <- !g.
+// !g.
++e <- !g; .print("teste").
++j <- !g.
 
 +!g: b[ap(1000)] & c[ap(2000)] & d[ap(3000)]
 	<-	.print("GOAL G1").
