@@ -37,6 +37,11 @@ public class ApplyAP extends DefaultDirective implements Directive {
 				if(!ap_beliefs.isEmpty()){
 					Trigger trigger = p.getTrigger().clone();
 					triggers_ap.add(trigger);
+
+					Trigger trigger_del = trigger.clone();
+					trigger_del.setTrigOp(Trigger.TEOperator.del);
+					triggers_ap.add(trigger_del);
+
 					ap_beliefs_map.computeIfAbsent(trigger, k -> new LinkedHashSet<Literal>()).addAll(ap_beliefs);
 				}
 			}
