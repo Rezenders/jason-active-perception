@@ -47,8 +47,8 @@ public class ApplyAP extends DefaultDirective implements Directive {
 			}
 		}
 
-		//Annotating plans with rp
 		for(Plan p: outerContent.getPL()){
+			//Annotating plans with rp
 			if(triggers_ap.contains(p.getTrigger())){
 				Atom rp = createAtom("rp");
 				p.getTrigger().getLiteral().addAnnots(rp);
@@ -81,32 +81,36 @@ public class ApplyAP extends DefaultDirective implements Directive {
 
 		//Adding new plans +!g[ap] -> .update(...); !g[rp].
 		for(Trigger t : triggers_ap){
-			String new_label_str = "l__" + String.valueOf(outerContent.getPL().size() + 1);
-			Pred new_label = new Pred(createLiteral(new_label_str));
+			if(t.getOperator()!= Trigger.TEOperator.del){
+				String new_label_str = "l__" + String.valueOf(outerContent.getPL().size() + 1);
+				Pred new_label = new Pred(createLiteral(new_label_str));
 
-			Atom ap = createAtom("ap");
-			t.getLiteral().addAnnots(ap);
-			Plan new_plan = new Plan​(new_label, t, null, new PlanBodyImpl());
+				Trigger t_ap = t.clone();
+				Atom ap = createAtom("ap");
+				t_ap.getLiteral().addAnnots(ap);
+				Plan new_plan = new Plan​(new_label, t_ap, null, new PlanBodyImpl());
 
-			for(Literal b : ap_beliefs_map.getOrDefault(t, new LinkedHashSet<Literal>())){
-				InternalActionLiteral update_ia = new InternalActionLiteral("active_perception.update");
-				update_ia.addTerm(b);
+				for(Literal b : ap_beliefs_map.getOrDefault(t, new LinkedHashSet<Literal>())){
+					InternalActionLiteral update_ia = new InternalActionLiteral("active_perception.update");
+					update_ia.addTerm(b);
 
-				PlanBodyImpl bl = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.internalAction, update_ia);
+					PlanBodyImpl bl = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.internalAction, update_ia);
+					new_plan.getBody().add(bl);
+				}
+
+				Literal g_rp = (Literal)t.getLiteral().clone();
+				Atom rp = createAtom("rp");
+				PlanBodyImpl bl = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.achieve, g_rp.addAnnots(rp));
 				new_plan.getBody().add(bl);
-			}
 
-			Literal literal_aux = (Literal)t.getLiteral().clone();
-			Atom rp = createAtom("rp");
-			PlanBodyImpl bl = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.achieve, literal_aux.addAnnots(rp));
-			new_plan.getBody().add(bl);
-
-			try{
-				outerContent.getPL().add(new_plan);
-			}catch(JasonException je){
-				System.out.println("Error adding new plan");
+				try{
+					outerContent.getPL().add(new_plan);
+				}catch(JasonException je){
+					System.out.println("Error adding new plan");
+				}
 			}
 		}
+
 		return null;
 	}
 
