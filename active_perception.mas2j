@@ -7,7 +7,7 @@ MAS active_perception {
     /* agents: approach3; */
     /* agents: sample_agent; */
     agents: onlyasl;
-    directives: apply_ap = active_perception.ApplyAP;
+    directives: apply_ap = active_perception.Directive2;
     /* directives: apply_ap = active_perception.ApplyAP3; */
 
     aslSourcePath: "src/asl";
