@@ -19,37 +19,18 @@ import jason.architecture.AgArch;
 
 import active_perception.ActivePerception;
 
-public class ApplyAP extends DefaultDirective implements Directive {
-
-	Map<Trigger, LinkedHashSet<Literal>> ap_beliefs_map = new HashMap<Trigger, LinkedHashSet<Literal>>();
+public class Directive2 extends DefaultDirective implements Directive {
 
 	public Agent process(Pred directive, Agent outerContent, Agent innerContent){
 		if (outerContent == null)
             return null;
 
-		Set<Trigger> triggers_ap = new LinkedHashSet<Trigger>();
-
-		//Get plans that has any belief marked with ap in context
-		for(Plan p : outerContent.getPL()){
-			Literal context = (Literal)p.getContext();
-			if(context != null){
-				List<Literal>  ap_beliefs = ActivePerception.getApBeliefs(context);
-				if(!ap_beliefs.isEmpty()){
-					Trigger trigger = p.getTrigger().clone();
-					triggers_ap.add(trigger);
-
-					Trigger trigger_del = trigger.clone();
-					trigger_del.setTrigOp(Trigger.TEOperator.del);
-					triggers_ap.add(trigger_del);
-
-					ap_beliefs_map.computeIfAbsent(trigger, k -> new LinkedHashSet<Literal>()).addAll(ap_beliefs);
-				}
-			}
-		}
+		ActivePerception activePerception = new ActivePerception(outerContent);
+		Map<Trigger, LinkedHashSet<Literal>> ap_beliefs_map = activePerception.getPlansApBel();
 
 		for(Plan p: outerContent.getPL()){
 			//Annotating plans with rp
-			if(triggers_ap.contains(p.getTrigger())){
+			if(ap_beliefs_map.keySet().contains(p.getTrigger())){
 				Atom rp = createAtom("rp");
 				p.getTrigger().getLiteral().addAnnots(rp);
 			}
@@ -57,7 +38,7 @@ public class ApplyAP extends DefaultDirective implements Directive {
 			//add [ap] to !g inside plans body
 			PlanBody pb = p.getBody();
 			for(int i=0; i<p.getBody().getPlanSize(); i++){
-				for(Trigger t: triggers_ap){
+				for(Trigger t: ap_beliefs_map.keySet()){
 					if(t.getLiteral().equals(pb.getBodyTerm()) && pb.getBodyType() == jason.asSyntax.PlanBody.BodyType.achieve ){
 						Atom ap = createAtom("ap");
 						Literal pb_ap = (Literal)pb.getBodyTerm();
@@ -71,7 +52,7 @@ public class ApplyAP extends DefaultDirective implements Directive {
 
 		//Annotating inital goals with ap
 		for(Literal l: outerContent.getInitialGoals()){
-			for(Trigger t: triggers_ap){
+			for(Trigger t: ap_beliefs_map.keySet()){
 				if(t.getLiteral().equals(l)){
 					Atom rp = createAtom("ap");
 					l.addAnnot(rp);
@@ -80,7 +61,7 @@ public class ApplyAP extends DefaultDirective implements Directive {
 		}
 
 		//Adding new plans +!g[ap] -> .update(...); !g[rp].
-		for(Trigger t : triggers_ap){
+		for(Trigger t : ap_beliefs_map.keySet()){
 			if(t.getOperator()!= Trigger.TEOperator.del){
 				String new_label_str = "l__" + String.valueOf(outerContent.getPL().size() + 1);
 				Pred new_label = new Pred(createLiteral(new_label_str));
