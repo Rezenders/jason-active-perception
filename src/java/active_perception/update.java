@@ -41,6 +41,7 @@ public class update extends ConcurrentInternalAction {
 								Calendar now = new GregorianCalendar();
 								long time_elapsed = now.getTimeInMillis() - lu_calendar.getTimeInMillis();
 								if(time_elapsed > time_limit){
+									ibb.remove();
 									updateBelief(ts, ap_belief);
 								}else{
 									resumeInt(ts, key);
