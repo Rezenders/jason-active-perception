@@ -24,29 +24,32 @@ public class update extends ConcurrentInternalAction {
 				//Check if belief was updated within time limit
 				Iterator<Literal> ibb =
 		                        ts.getAg().getBB().getCandidateBeliefs((Literal)args[0], new Unifier());
-
 				if(ibb != null){
 					while(ibb!=null && ibb.hasNext()){
-						try{
-							Literal belief = ibb.next();
-							Literal lu_literal = belief.getAnnot("lu");
-							Calendar lu_calendar = new GregorianCalendar();
-							lu_calendar.set(Calendar.HOUR_OF_DAY,(int)((NumberTerm)lu_literal.getTerm(0)).solve());
-							lu_calendar.set(Calendar.MINUTE, (int)((NumberTerm)lu_literal.getTerm(1)).solve());
-							lu_calendar.set(Calendar.SECOND,(int)((NumberTerm)lu_literal.getTerm(2)).solve());
-							lu_calendar.set(Calendar.MILLISECOND,(int)((NumberTerm)lu_literal.getTerm(3)).solve());
-							lu_calendar.getTime();
+						Literal belief = ibb.next();
+						if(belief.equalsAsStructure(ap_belief)){
+							try{
+								Literal lu_literal = belief.getAnnot("lu");
+								Calendar lu_calendar = new GregorianCalendar();
+								lu_calendar.set(Calendar.HOUR_OF_DAY,(int)((NumberTerm)lu_literal.getTerm(0)).solve());
+								lu_calendar.set(Calendar.MINUTE, (int)((NumberTerm)lu_literal.getTerm(1)).solve());
+								lu_calendar.set(Calendar.SECOND,(int)((NumberTerm)lu_literal.getTerm(2)).solve());
+								lu_calendar.set(Calendar.MILLISECOND,(int)((NumberTerm)lu_literal.getTerm(3)).solve());
+								lu_calendar.getTime();
 
-							int time_limit = (int)((NumberTerm) belief.getAnnot("ap").getTerm(0)).solve();
-							Calendar now = new GregorianCalendar();
-							long time_elapsed = now.getTimeInMillis() - lu_calendar.getTimeInMillis();
-							if(time_elapsed > time_limit){
-								updateBelief(ts, ap_belief);
-							}else{
-								resumeInt(ts, key);
+								int time_limit = (int)((NumberTerm) belief.getAnnot("ap").getTerm(0)).solve();
+								Calendar now = new GregorianCalendar();
+								long time_elapsed = now.getTimeInMillis() - lu_calendar.getTimeInMillis();
+								if(time_elapsed > time_limit){
+									updateBelief(ts, ap_belief);
+								}else{
+									resumeInt(ts, key);
+								}
+							}catch(NoValueException e){
+
 							}
-						}catch(NoValueException e){
-
+						}else{
+							updateBelief(ts, ap_belief);
 						}
 					}
 				}else{
