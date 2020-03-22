@@ -25,40 +25,19 @@ public class Directive2 extends DefaultDirective implements Directive {
 		if (outerContent == null)
             return null;
 
-		ActivePerception activePerception = new ActivePerception(outerContent);
-		Map<Trigger, LinkedHashSet<Literal>> ap_beliefs_map = activePerception.getPlansApBel();
+		Map<Trigger, LinkedHashSet<Literal>> ap_beliefs_map = ActivePerception.getPlansApBel(outerContent);
 
-		for(Plan p: outerContent.getPL()){
-			//Annotating plans with rp
-			if(ap_beliefs_map.keySet().contains(p.getTrigger())){
-				Atom rp = createAtom("rp");
-				p.getTrigger().getLiteral().addAnnots(rp);
-			}
-
-			//add [ap] to !g inside plans body
-			PlanBody pb = p.getBody();
-			for(int i=0; i<p.getBody().getPlanSize(); i++){
-				for(Trigger t: ap_beliefs_map.keySet()){
-					if(t.getLiteral().equals(pb.getBodyTerm()) && pb.getBodyType() == jason.asSyntax.PlanBody.BodyType.achieve ){
-						Atom ap = createAtom("ap");
-						Literal pb_ap = (Literal)pb.getBodyTerm();
-						pb_ap.addAnnot(ap);
-						break;
-					}
-				}
-				pb = pb.getBodyNext();
-			}
-		}
+		Atom ap_atom = createAtom("ap");
+		Atom rp_atom = createAtom("rp");
 
 		//Annotating inital goals with ap
-		for(Literal l: outerContent.getInitialGoals()){
-			for(Trigger t: ap_beliefs_map.keySet()){
-				if(t.getLiteral().equals(l)){
-					Atom rp = createAtom("ap");
-					l.addAnnot(rp);
-				}
-			}
-		}
+		ActivePerception.annotInitGoals(outerContent, ap_beliefs_map, ap_atom);
+
+		//Annotating plans with rp
+		ActivePerception.annotTriggers(outerContent, ap_beliefs_map, rp_atom);
+
+		//add [ap] to !g inside plans body
+		ActivePerception.annotPlanBodyAchieve(outerContent, ap_beliefs_map, ap_atom);
 
 		//Adding new plans +!g[ap] -> .update(...); !g[rp].
 		for(Trigger t : ap_beliefs_map.keySet()){
@@ -67,8 +46,8 @@ public class Directive2 extends DefaultDirective implements Directive {
 				Pred new_label = new Pred(createLiteral(new_label_str));
 
 				Trigger t_ap = t.clone();
-				Atom ap = createAtom("ap");
-				t_ap.getLiteral().addAnnots(ap);
+				// Atom ap = createAtom("ap");
+				t_ap.getLiteral().addAnnots(ap_atom);
 				Plan new_plan = new Plan​(new_label, t_ap, null, new PlanBodyImpl());
 
 				for(Literal b : ap_beliefs_map.getOrDefault(t, new LinkedHashSet<Literal>())){
@@ -80,8 +59,8 @@ public class Directive2 extends DefaultDirective implements Directive {
 				}
 
 				Literal g_rp = (Literal)t.getLiteral().clone();
-				Atom rp = createAtom("rp");
-				PlanBodyImpl bl = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.achieve, g_rp.addAnnots(rp));
+				// Atom rp = createAtom("rp");
+				PlanBodyImpl bl = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.achieve, g_rp.addAnnots(rp_atom));
 				new_plan.getBody().add(bl);
 
 				try{
