@@ -2,9 +2,12 @@ package active_perception;
 
 import jason.asSemantics.Agent;
 import jason.asSyntax.*;
+import jason.JasonException;
+import static jason.asSyntax.ASSyntax.*;
 
 import java.util.List;
 import java.util.ArrayList;
+
 import java.util.Set;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -87,6 +90,23 @@ public class ActivePerception{
 				}
 				pb = pb.getBodyNext();
 			}
+		}
+	}
+
+	public static void addNewPlan(Agent outerContent, Trigger trigger, LogicalFormula context, List<PlanBodyImpl> planBody){
+		String label_str = "l__" + String.valueOf(outerContent.getPL().size() + 1);
+		Pred label = new Pred(createLiteral(label_str));
+
+		Plan new_plan = new Plan​(label, trigger, context, new PlanBodyImpl());
+
+		for(PlanBodyImpl pb: planBody){
+			new_plan.getBody().add(pb);
+		}
+
+		try{
+			outerContent.getPL().add(new_plan);
+		}catch(JasonException je){
+			System.out.println("Error adding new plan");
 		}
 	}
 
