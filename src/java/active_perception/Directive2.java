@@ -69,19 +69,7 @@ public class Directive2 extends DefaultDirective implements Directive {
 
 		//Adding new plans +!update(X): not active_perception.isUpdated(X) <- ?X.
 		//and +!update(X).
-		Literal update = createLiteral("update");
-		VarTerm x_term = new VarTerm("X");
-		update.addTerm(x_term);
-		Trigger update_trigger = new Trigger(TEOperator.add, TEType.achieve, update.addAnnots(ap_atom));
-
-		InternalActionLiteral isUpdated = new InternalActionLiteral("active_perception.isUpdated");
-		isUpdated.addTerm(x_term);
-		LogExpr not_isUpdated = new LogExpr(LogExpr.LogicalOp.not, isUpdated);
-
-		PlanBodyImpl update_body = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.test, x_term);
-
-		ActivePerception.addNewPlan(outerContent, update_trigger, not_isUpdated, new ArrayList<>(Arrays.asList(update_body)));
-		ActivePerception.addNewPlan(outerContent, update_trigger, null, new ArrayList<>());
+		ActivePerception.addUpdatePlan(outerContent);
 
 		return null;
 	}

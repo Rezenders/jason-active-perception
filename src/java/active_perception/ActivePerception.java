@@ -5,9 +5,12 @@ import jason.asSyntax.*;
 import jason.JasonException;
 import static jason.asSyntax.ASSyntax.*;
 
+import jason.asSyntax.Trigger.TEType;
+import jason.asSyntax.Trigger.TEOperator;
+
 import java.util.List;
 import java.util.ArrayList;
-
+import java.util.Arrays;
 import java.util.Set;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -108,6 +111,25 @@ public class ActivePerception{
 		}catch(JasonException je){
 			System.out.println("Error adding new plan");
 		}
+	}
+
+	public static void addUpdatePlan(Agent outerContent){
+		//Adding new plans +!update(X): not active_perception.isUpdated(X) <- ?X.
+		//and +!update(X).
+		Literal update = createLiteral("update");
+		VarTerm x_term = new VarTerm("X");
+		update.addTerm(x_term);
+		Atom ap_atom = createAtom("ap");
+		Trigger update_trigger = new Trigger(TEOperator.add, TEType.achieve, update.addAnnots(ap_atom));
+
+		InternalActionLiteral isUpdated = new InternalActionLiteral("active_perception.isUpdated");
+		isUpdated.addTerm(x_term);
+		LogExpr not_isUpdated = new LogExpr(LogExpr.LogicalOp.not, isUpdated);
+
+		PlanBodyImpl update_body = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.test, x_term);
+
+		ActivePerception.addNewPlan(outerContent, update_trigger, not_isUpdated, new ArrayList<>(Arrays.asList(update_body)));
+		ActivePerception.addNewPlan(outerContent, update_trigger, null, new ArrayList<>());
 	}
 
 }
