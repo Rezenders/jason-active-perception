@@ -6,20 +6,22 @@ import jason.asSyntax.*;
 import jason.asSyntax.directives.*;
 import jason.asSyntax.BodyLiteral.BodyType;
 import static jason.asSyntax.ASSyntax.*;
-import java.util.Set;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
 import jason.asSyntax.Trigger.TEType;
 import jason.asSyntax.Trigger.TEOperator;
 import jason.JasonException;
 import jason.architecture.AgArch;
 
+import java.util.Set;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.HashMap;
+
 import active_perception.ActivePerception;
 
-public class Directive2 extends DefaultDirective implements Directive {
+public class Directive2B extends DefaultDirective implements Directive {
 
 	public Agent process(Pred directive, Agent outerContent, Agent innerContent){
 		if (outerContent == null)
@@ -48,10 +50,10 @@ public class Directive2 extends DefaultDirective implements Directive {
 				List<PlanBodyImpl> pb_list = new ArrayList<PlanBodyImpl>();
 
 				for(Literal b : ap_beliefs_map.getOrDefault(t, new LinkedHashSet<Literal>())){
-					InternalActionLiteral update_ia = new InternalActionLiteral("active_perception.update");
-					update_ia.addTerm(b);
+					Literal update_literal = createLiteral("update").addAnnots(ap_atom);
+					update_literal.addTerm(b.clone());
 
-					PlanBodyImpl bl = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.internalAction, update_ia);
+					PlanBodyImpl bl = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.achieve, update_literal);
 					pb_list.add(bl);
 				}
 
@@ -60,8 +62,25 @@ public class Directive2 extends DefaultDirective implements Directive {
 				pb_list.add(bl);
 
 				ActivePerception.addNewPlan(outerContent, t_ap, null, pb_list);
+
 			}
 		}
+
+		//Adding new plans +!update(X): not active_perception.isUpdated(X) <- ?X.
+		//and +!update(X).
+		Literal update = createLiteral("update");
+		VarTerm x_term = new VarTerm("X");
+		update.addTerm(x_term);
+		Trigger update_trigger = new Trigger(TEOperator.add, TEType.achieve, update.addAnnots(ap_atom));
+
+		InternalActionLiteral isUpdated = new InternalActionLiteral("active_perception.isUpdated");
+		isUpdated.addTerm(x_term);
+		LogExpr not_isUpdated = new LogExpr(LogExpr.LogicalOp.not, isUpdated);
+
+		PlanBodyImpl update_body = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.test, x_term);
+
+		ActivePerception.addNewPlan(outerContent, update_trigger, not_isUpdated, new ArrayList<>(Arrays.asList(update_body)));
+		ActivePerception.addNewPlan(outerContent, update_trigger, null, new ArrayList<>());
 
 		return null;
 	}
