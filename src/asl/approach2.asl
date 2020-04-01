@@ -4,9 +4,9 @@ e.
 +e <- !g[ap].
 
 +!g[ap]
-	<- 	active_perception.update(b[ap(1000)]);
-			active_perception.update(c[ap(2000)]);
-			active_perception.update(d[ap(3000)]);
+	<- 	!update(b[ap(1000)])[ap];
+			!update(c[ap(2000)])[ap];
+			!update(d[ap(3000)])[ap];
 			!g[rp].
 
 +!g[rp]: b[ap(1000)] & c[ap(2000)] & d[ap(3000)]
@@ -31,6 +31,10 @@ e.
 
 +?d[ap(T)] <- .print("Active perception plan for d").
 
++!update(X)[ap]: not active_perception.isUpdated(X)
+    <- ?X.
+
++!update(X)[ap].
 
 //// +!g: b[ap(1000)] & c[ap(2000)] & d[ap(3000)]
 // 	<- .print("GOAL G1").
