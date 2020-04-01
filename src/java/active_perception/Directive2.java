@@ -21,12 +21,13 @@ import java.util.HashMap;
 
 import active_perception.ActivePerception;
 
-public class Directive2B extends DefaultDirective implements Directive {
+public class Directive2 extends DefaultDirective implements Directive {
 
 	public Agent process(Pred directive, Agent outerContent, Agent innerContent){
 		if (outerContent == null)
             return null;
 
+		//Get plans that has any belief marked with ap in context
 		Map<Trigger, LinkedHashSet<Literal>> ap_beliefs_map = ActivePerception.getPlansApBel(outerContent);
 
 		Atom ap_atom = createAtom("ap");
