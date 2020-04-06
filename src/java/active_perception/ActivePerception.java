@@ -9,6 +9,7 @@ import jason.asSyntax.Trigger.TEType;
 import jason.asSyntax.Trigger.TEOperator;
 
 import java.util.List;
+import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
@@ -20,8 +21,8 @@ public class ActivePerception{
 
 
 	///Get beliefs marked with ap
-	private static List<Literal> findApBeliefs(Literal context){
-		List<Literal> beliefs = new ArrayList<Literal>();
+	private static LinkedHashSet<Literal> findApBeliefs(Literal context){
+		LinkedHashSet<Literal> beliefs = new LinkedHashSet<Literal>();
 		Integer arity = context.getArity();
 
 		if(context.isLiteral() && !context.getAnnots("ap").isEmpty()){
@@ -38,56 +39,80 @@ public class ActivePerception{
 	}
 
 	//Get plans that has any belief marked with ap in context
-	public static Map<Trigger, LinkedHashSet<Literal>> getPlansApBel(Agent outerContent){
-		Map<Trigger, LinkedHashSet<Literal>> ap_beliefs_map = new HashMap<Trigger, LinkedHashSet<Literal>>();
+	public static PlansApBel getPlansApBel(Agent outerContent){
+		PlansApBel plans_ap_bel = new PlansApBel();
 		for(Plan p : outerContent.getPL()){
 			Literal context = (Literal)p.getContext();
 			if(context != null){
-				List<Literal>  ap_beliefs = findApBeliefs(context);
+				LinkedHashSet<Literal>  ap_beliefs = findApBeliefs(context);
 				if(!ap_beliefs.isEmpty()){
 					Trigger trigger = p.getTrigger().clone();
+					Term label = p.getLabel().clone();
+
+					ApBels ap_bel = new ApBels(trigger, label, ap_beliefs);
 
 					Trigger trigger_del = trigger.clone();
 					trigger_del.setTrigOp(Trigger.TEOperator.del);
+					ApBels del_ap_bel = new ApBels(trigger_del, label, ap_beliefs);
 
-					ap_beliefs_map.computeIfAbsent(trigger, k -> new LinkedHashSet<Literal>()).addAll(ap_beliefs);
-					ap_beliefs_map.computeIfAbsent(trigger_del, k -> new LinkedHashSet<Literal>()).addAll(ap_beliefs);
+					plans_ap_bel.addApBels(ap_bel);
+					plans_ap_bel.addApBels(del_ap_bel);
 				}
 			}
 
 		}
-		return ap_beliefs_map;
+		return plans_ap_bel;
 	}
 
 	//Annotating inital goals with annot
-	public static void annotInitGoals(Agent outerContent, Map<Trigger, LinkedHashSet<Literal>> ap_beliefs_map, Atom annot){
+	public static void annotInitGoals(Agent outerContent, Set<Trigger> trigger_set, Atom... annot){
 		for(Literal l: outerContent.getInitialGoals()){
-			for(Trigger t: ap_beliefs_map.keySet()){
+			for(Trigger t: trigger_set){
 				if(t.getLiteral().getPredicateIndicator().equals(l.getPredicateIndicator())){
-					l.addAnnot(annot);
+					l.addAnnots(annot);
+				}
+			}
+		}
+	}
+
+	public static void annotInitGoalsLabel(Agent outerContent, PlansApBel plans_ap_bel, Atom... annot){
+		for(Literal l: outerContent.getInitialGoals()){
+			for(Trigger t: plans_ap_bel.getTriggerSet()){
+				if(t.getLiteral().getPredicateIndicator().equals(l.getPredicateIndicator())){
+					l.addAnnots(annot);
+					l.addAnnots(plans_ap_bel.getLabel(t));
 				}
 			}
 		}
 	}
 
 	//Annotating plans with annot
-	public static void annotTriggers(Agent outerContent, Map<Trigger, LinkedHashSet<Literal>> ap_beliefs_map, Atom annot){
+	public static void annotTriggers(Agent outerContent, Set<Trigger> trigger_set, Atom annot){
 		for(Plan p: outerContent.getPL()){
-			if(ap_beliefs_map.keySet().contains(p.getTrigger())){
+			if(trigger_set.contains(p.getTrigger())){
 				p.getTrigger().getLiteral().addAnnots(annot);
 			}
 		}
 	}
 
+	public static void annotTriggersLabel(Agent outerContent, Set<Trigger> trigger_set, Atom annot){
+		for(Plan p: outerContent.getPL()){
+			if(trigger_set.contains(p.getTrigger())){
+				Term label = p.getLabel().clone();
+				p.getTrigger().getLiteral().addAnnots(annot, label);
+			}
+		}
+	}
+
 	//add [annot] to !g inside plans body
-	public static void annotPlanBodyAchieve(Agent outerContent, Map<Trigger, LinkedHashSet<Literal>> ap_beliefs_map, Atom annot){
+	public static void annotPlanBodyAchieve(Agent outerContent, Set<Trigger> trigger_set, Atom... annot){
 		for(Plan p: outerContent.getPL()){
 			PlanBody pb = p.getBody();
 			for(int i=0; i<p.getBody().getPlanSize(); i++){
 				Literal pb_ap = (Literal)pb.getBodyTerm();
-				for(Trigger t: ap_beliefs_map.keySet()){
+				for(Trigger t: trigger_set){
 					if(t.getLiteral().getPredicateIndicator().equals(pb_ap.getPredicateIndicator()) && pb.getBodyType() == jason.asSyntax.PlanBody.BodyType.achieve ){
-						pb_ap.addAnnot(annot);
+						pb_ap.addAnnots(annot);
 						break;
 					}
 				}
@@ -96,7 +121,24 @@ public class ActivePerception{
 		}
 	}
 
-	public static void addNewPlan(Agent outerContent, Trigger trigger, LogicalFormula context, List<PlanBodyImpl> planBody){
+	public static void annotPlanBodyAchieveLabel(Agent outerContent, PlansApBel plans_ap_bel, Atom... annot){
+		for(Plan p: outerContent.getPL()){
+			PlanBody pb = p.getBody();
+			for(int i=0; i<p.getBody().getPlanSize(); i++){
+				Literal pb_ap = (Literal)pb.getBodyTerm();
+				for(Trigger t: plans_ap_bel.getTriggerSet()){
+					if(t.getLiteral().getPredicateIndicator().equals(pb_ap.getPredicateIndicator()) && pb.getBodyType() == jason.asSyntax.PlanBody.BodyType.achieve ){
+						pb_ap.addAnnots(annot);
+						pb_ap.addAnnots(plans_ap_bel.getLabel(t));
+						break;
+					}
+				}
+				pb = pb.getBodyNext();
+			}
+		}
+	}
+
+	public static void addNewPlan(Agent outerContent, Trigger trigger, LogicalFormula context, PlanBodyImpl... planBody){
 		String label_str = "l__" + String.valueOf(outerContent.getPL().size() + 1);
 		Pred label = new Pred(createLiteral(label_str));
 
@@ -113,9 +155,9 @@ public class ActivePerception{
 		}
 	}
 
+	//Adding new plans +!update(X): not active_perception.isUpdated(X) <- ?X.
+	//and +!update(X).
 	public static void addUpdatePlan(Agent outerContent){
-		//Adding new plans +!update(X): not active_perception.isUpdated(X) <- ?X.
-		//and +!update(X).
 		Literal update = createLiteral("update");
 		VarTerm x_term = new VarTerm("X");
 		update.addTerm(x_term);
@@ -128,8 +170,65 @@ public class ActivePerception{
 
 		PlanBodyImpl update_body = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.test, x_term);
 
-		ActivePerception.addNewPlan(outerContent, update_trigger, not_isUpdated, new ArrayList<>(Arrays.asList(update_body)));
-		ActivePerception.addNewPlan(outerContent, update_trigger, null, new ArrayList<>());
+		ActivePerception.addNewPlan(outerContent, update_trigger, not_isUpdated, update_body);
+		ActivePerception.addNewPlan(outerContent, update_trigger, null);
 	}
 
+}
+
+class ApBels{
+	public Trigger plan_trigger;
+	public Term plan_label;
+	public LinkedHashSet<Literal> ap_set = new LinkedHashSet();
+
+	public ApBels(){}
+
+	public ApBels(Trigger t, Term l, LinkedHashSet<Literal> s){
+		plan_trigger = t;
+		plan_label = l;
+		ap_set = s;
+	}
+}
+
+class PlansApBel{
+	LinkedList <ApBels> ap_bels= new LinkedList<ApBels>();
+	Map<Trigger, Term> triggers_label = new HashMap<Trigger, Term>();
+
+	public LinkedList<ApBels> getApBels(Trigger t){
+		LinkedList<ApBels> ap_list = new LinkedList<ApBels>();
+		for(ApBels apb: ap_bels){
+			if(apb.plan_trigger.equals(t)){
+				ap_list.add(apb);
+			}
+		}
+		return ap_list;
+	}
+
+	public ApBels getApBelsLabel(Term label){
+		LinkedList<ApBels> ap_list = new LinkedList<ApBels>();
+		ApBels ap_bel = new ApBels();
+		for(ApBels apb: ap_bels){
+			if(apb.plan_label.equals(label)){
+				ap_bel = apb;
+			}
+		}
+		return ap_bel;
+	}
+
+	public LinkedList<ApBels> getAllApBels(){
+		return ap_bels;
+	}
+
+	public Set <Trigger> getTriggerSet(){
+		return triggers_label.keySet();
+	}
+
+	public Term getLabel(Trigger t){
+		return triggers_label.get(t);
+	}
+
+	public void addApBels(ApBels aps){
+		ap_bels.add(aps);
+		triggers_label.computeIfAbsent(aps.plan_trigger, k -> aps.plan_label);
+	}
 }
