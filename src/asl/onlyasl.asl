@@ -16,6 +16,8 @@ z.
 +!g(Z,W): b(1,2)[ap(1000)] & c[ap(2000)] & d[ap(3000)]
 	<-	.print("GOAL G1").
 
++!g(Z,W): l & i <- .print("GOAL G9").
+
 +!g(Z,W): b(2,Y)[ap(1000)] & c[ap(2000)]
 	<-	.print("GOAL G2").
 

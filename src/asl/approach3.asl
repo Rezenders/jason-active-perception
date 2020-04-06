@@ -17,7 +17,7 @@ z.
 +!g[ap, l_3]
 	<- 	!g[rp, l_3].
 
--!g[ap].
+// -!g[ap, l_3].
 
 +!g[rp,l_1]: b[ap(1000)] & c[ap(2000)] & d[ap(3000)]
 	<-	.print("GOAL G1").
@@ -33,7 +33,7 @@ z.
 
 // -!g[rp,l_1] <- .print("Falhou").
 // -!g[rp,l_2] <- .print("Falhou").
-// -!g[rp,l_3] <- .print("Falhou").
+-!g[rp,l_3] <- .print("Falhou").
 
 +?b[ap(T)]
 	<-	.time(HH,MM,SS,MS);
