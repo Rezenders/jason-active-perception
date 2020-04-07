@@ -1,17 +1,19 @@
 /*
-   Project parser
+   Project active_perception
 
    Gradle build file for Jason Application
-   August 28, 2019 - 12:52:48
+   abril 01, 2020 - 12:53:36
 */
 
 defaultTasks 'run'
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 version '1.0'
-group   'org.jason'
+group   'org.jason-lang'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -21,14 +23,14 @@ repositories {
 
     maven { url "http://jacamo.sourceforge.net/maven2" }
     maven { url "https://jade.tilab.com/maven/" }
-    
+
     flatDir {
        dirs 'lib'
     }
 }
 
 dependencies {
-    compile group: 'org.jason-lang',     name: 'jason' ,   version: '2.4'
+    compile group: 'org.jason-lang',     name: 'jason' ,   version: '2.5-SNAPSHOT'
 }
 
 sourceSets {
@@ -45,7 +47,7 @@ sourceSets {
 task run (type: JavaExec, dependsOn: 'classes') {
     description 'runs the application'
     main = 'jason.infra.centralised.RunCentralisedMAS'
-    args 'parser.mas2j'
+    args 'active_perception.mas2j'
     classpath sourceSets.main.runtimeClasspath
 }
 
@@ -54,3 +56,57 @@ clean {
     delete 'build'
 }
 
+task javadocJar (type: Jar, dependsOn: javadoc) {
+    baseName 'jason_active_perception'
+    classifier = 'javadoc'
+    //from '${docsDir}/../../doc/api'
+}
+
+task sourceJar (type : Jar) {
+    baseName 'jason_active_perception'
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourceJar, javadocJar
+}
+
+
+publishing {
+    publications {
+        jason_active_perception(MavenPublication) {
+            from components.java
+			      artifact sourceJar
+			      artifact javadocJar
+            artifactId 'jason_active_perception'
+        }
+    }
+}
+
+task publishMavenGitHub(dependsOn: [ 'build', 'publishToMavenLocal']) {
+  doLast {
+    def wdir = System.getProperty("user.home")+'/.m2/repository/org/jason-lang/jason_active_perception'
+    def rdir = System.getProperty("user.home")+'/pro/mvn-repo'
+    exec {
+        commandLine 'git', 'pull'
+        workingDir rdir
+    }
+    copy {
+        from wdir
+        into rdir + '/org/jason-lang/jason_active_perception'
+    }
+    exec {
+        commandLine 'git', 'add', '*'
+        workingDir rdir
+    }
+    exec {
+        commandLine 'git', 'commit', '-a', '-m', 'new version of jason_active_perception '+project.version
+        workingDir rdir
+    }
+    exec {
+        commandLine 'git', 'push'
+        workingDir rdir
+    }
+  }
+}
