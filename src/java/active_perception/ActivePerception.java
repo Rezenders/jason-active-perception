@@ -24,15 +24,13 @@ public class ActivePerception{
 	private static LinkedHashSet<Literal> findApBeliefs(Literal context){
 		LinkedHashSet<Literal> beliefs = new LinkedHashSet<Literal>();
 		Integer arity = context.getArity();
-
 		if(context.isLiteral() && !context.getAnnots("ap").isEmpty()){
 			beliefs.add(context);
 		} else if(arity > 0 && context.isLiteral()){
-			if(context.getTermsArray()[0].isLiteral()){
-				beliefs.addAll(findApBeliefs((Literal)context.getTermsArray()[0]));
-			}
-			if(context.getTermsArray()[1].isLiteral()){
-				beliefs.addAll(findApBeliefs((Literal)context.getTermsArray()[1]));
+			for (int a=0; a<arity; a++) {
+				if(context.getTermsArray()[a].isLiteral()){
+					beliefs.addAll(findApBeliefs((Literal)context.getTermsArray()[a]));
+				}
 			}
 		}
 		return beliefs;

@@ -32,10 +32,10 @@ public class Directive3 extends DefaultDirective implements Directive {
 		Atom ap_atom = createAtom("ap");
 		Atom rp_atom = createAtom("rp");
 
-		//Annotating inital goals with ap and l_x
+		//Annotating inital goals with ap and first label
 		ActivePerception.annotInitGoalsLabel(outerContent, plans_ap_bel, ap_atom);
 
-		//add [ap] to !g inside plans body
+		//add [ap] to !g inside plans body and first label
 		ActivePerception.annotPlanBodyAchieveLabel(outerContent, plans_ap_bel, ap_atom);
 
 		//Annotating plans with rp and label. e.g +!g[rp,l_3]
@@ -89,7 +89,7 @@ public class Directive3 extends DefaultDirective implements Directive {
 			}
 		}
 
-		//+!g(X)[ap,l_x] <- !update(X).
+		//+!g(X)[ap,l_x] <- !update(X); !g(X)[rp,l_x].
 		for(Trigger t: triggers_labels.keySet()){
 			if(t.getOperator()!= Trigger.TEOperator.del){
 				for (Term label: triggers_labels.get(t)) {
