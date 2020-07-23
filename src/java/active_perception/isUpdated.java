@@ -47,7 +47,7 @@ public class isUpdated extends DefaultInternalAction {
               lu_calendar.set(Calendar.MILLISECOND,(int)((NumberTerm)lu_literal.getTerm(3)).solve());
               lu_calendar.getTime();
 
-              int time_limit = (int)((NumberTerm) belief.getAnnot("ap").getTerm(0)).solve();
+              int time_limit = (int)((NumberTerm) ap_belief.getAnnot("ap").getTerm(0)).solve();
               Calendar now = new GregorianCalendar();
               long time_elapsed = now.getTimeInMillis() - lu_calendar.getTimeInMillis();
               if(time_elapsed > time_limit){
