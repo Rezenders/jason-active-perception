@@ -37,7 +37,8 @@ public class isUpdated extends DefaultInternalAction {
       if(ibb != null){
         while(ibb!=null && ibb.hasNext()){
           Literal belief = ibb.next();
-          if(belief.equalsAsStructure(ap_belief)){
+          Unifier my_un = new Unifier();
+          if(my_un.unifies(ap_belief, belief)){
             try{
               Literal lu_literal = belief.getAnnot("lu");
               Calendar lu_calendar = new GregorianCalendar();
