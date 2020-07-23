@@ -153,20 +153,35 @@ public class ActivePerception{
 		}
 	}
 
-	//Adding new plans +!update(X): not active_perception.isUpdated(X) <- ?X.
+	//Adding new plans +!update(X[ap(T)]): not active_perception.isUpdated(X[ap(T)]) <- ?X[ap].
 	//and +!update(X).
 	public static void addUpdatePlan(Agent outerContent){
-		Literal update = createLiteral("update");
-		VarTerm x_term = new VarTerm("X");
-		update.addTerm(x_term);
+
+		// create ap
 		Atom ap_atom = createAtom("ap");
+		//create ap(T)
+		Literal ap_atom_t = createLiteral("ap");
+		VarTerm t_term = new VarTerm("T");
+		ap_atom_t.addTerm(t_term);
+
+		// create X
+		VarTerm x_term_ap = new VarTerm("X");
+		x_term_ap.addAnnot(ap_atom);
+		// create X[ap(T)]
+		VarTerm x_term_t = new VarTerm("X");
+		x_term_t.addAnnot(ap_atom_t);
+
+		//create update(X[ap(T)])
+		Literal update = createLiteral("update");
+		update.addTerm(x_term_t);
+
 		Trigger update_trigger = new Trigger(TEOperator.add, TEType.achieve, update.addAnnots(ap_atom));
 
 		InternalActionLiteral isUpdated = new InternalActionLiteral("active_perception.isUpdated");
-		isUpdated.addTerm(x_term);
+		isUpdated.addTerm(x_term_t);
 		LogExpr not_isUpdated = new LogExpr(LogExpr.LogicalOp.not, isUpdated);
 
-		PlanBodyImpl update_body = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.test, x_term);
+		PlanBodyImpl update_body = new PlanBodyImpl(jason.asSyntax.PlanBody.BodyType.test, x_term_ap);
 
 		ActivePerception.addNewPlan(outerContent, update_trigger, not_isUpdated, update_body);
 		ActivePerception.addNewPlan(outerContent, update_trigger, null);
